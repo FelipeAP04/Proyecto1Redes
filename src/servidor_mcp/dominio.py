@@ -227,8 +227,12 @@ def analizar_modelo_datos(argumentos: dict[str, Any]) -> dict[str, Any]:
     hallazgos: list[str] = []
 
     for tabla in tablas:
-        if not isinstance(tabla, dict) or not isinstance(tabla.get("nombre"), str):
-            raise ValueError("Cada tabla debe tener un nombre de texto.")
+        if (
+            not isinstance(tabla, dict)
+            or not isinstance(tabla.get("nombre"), str)
+            or not tabla["nombre"].strip()
+        ):
+            raise ValueError("Cada tabla debe tener un nombre de texto no vacío.")
         columnas = tabla.get("columnas")
         if not isinstance(columnas, list) or not columnas:
             raise ValueError(f"La tabla {tabla['nombre']} debe incluir columnas.")
@@ -236,13 +240,30 @@ def analizar_modelo_datos(argumentos: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(f"La tabla {tabla['nombre']} supera el límite de 200 columnas.")
         if any(
             not isinstance(columna, dict)
-            or not columna.get("nombre")
-            or not columna.get("tipo")
+            or not isinstance(columna.get("nombre"), str)
+            or not columna["nombre"].strip()
+            or not isinstance(columna.get("tipo"), str)
+            or not columna["tipo"].strip()
             for columna in columnas
         ):
             raise ValueError(
                 f"Todas las columnas de {tabla['nombre']} requieren nombre y tipo."
             )
+        if any(
+            columna.get("rol") not in (None, "medida", "dimension", "identificador")
+            for columna in columnas
+        ):
+            raise ValueError(f"La tabla {tabla['nombre']} contiene un rol de columna inválido.")
+        if any(
+            columna.get("clave") not in (None, "primaria", "foranea")
+            for columna in columnas
+        ):
+            raise ValueError(f"La tabla {tabla['nombre']} contiene un tipo de clave inválido.")
+        if any(
+            "referencia" in columna and not isinstance(columna["referencia"], str)
+            for columna in columnas
+        ):
+            raise ValueError(f"Las referencias de {tabla['nombre']} deben ser texto.")
 
         nombre = tabla["nombre"]
         medidas = [columna for columna in columnas if columna.get("rol") == "medida"]
@@ -300,6 +321,8 @@ def recomendar_dashboard(argumentos: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("El objetivo del dashboard debe describirse con al menos 5 caracteres.")
     if not isinstance(campos, list) or not campos:
         raise ValueError("Se requiere al menos un campo para recomendar el dashboard.")
+    if len(campos) > 500:
+        raise ValueError("La recomendación admite como máximo 500 campos por solicitud.")
 
     medidas: list[str] = []
     fechas: list[str] = []
@@ -308,10 +331,26 @@ def recomendar_dashboard(argumentos: dict[str, Any]) -> dict[str, Any]:
     tipos_fecha = {"date", "datetime", "timestamp", "fecha"}
 
     for campo in campos:
-        if not isinstance(campo, dict) or not campo.get("nombre") or not campo.get("tipo"):
+        if (
+            not isinstance(campo, dict)
+            or not isinstance(campo.get("nombre"), str)
+            or not campo["nombre"].strip()
+            or not isinstance(campo.get("tipo"), str)
+            or not campo["tipo"].strip()
+        ):
             raise ValueError("Cada campo requiere nombre y tipo.")
-        tipo = str(campo["tipo"]).lower()
         rol = campo.get("rol")
+        if rol not in (None, "medida", "dimension", "fecha", "identificador"):
+            raise ValueError(f"El campo {campo['nombre']} tiene un rol inválido.")
+        cardinalidad = campo.get("cardinalidad")
+        if cardinalidad is not None and (
+            isinstance(cardinalidad, bool)
+            or not isinstance(cardinalidad, int)
+            or cardinalidad < 1
+        ):
+            raise ValueError(f"La cardinalidad de {campo['nombre']} debe ser un entero positivo.")
+
+        tipo = campo["tipo"].lower()
         if rol == "medida" or (tipo in tipos_numericos and rol != "identificador"):
             medidas.append(campo["nombre"])
         elif rol == "fecha" or tipo in tipos_fecha:
@@ -375,6 +414,8 @@ def revisar_consulta_sql(argumentos: dict[str, Any]) -> dict[str, Any]:
     dialecto = argumentos.get("dialecto", "SQL genérico")
     if not isinstance(consulta, str) or not consulta.strip():
         raise ValueError("La consulta SQL no puede estar vacía.")
+    if not isinstance(dialecto, str):
+        raise ValueError("El dialecto SQL debe ser un texto.")
     if len(consulta) > 50_000:
         raise ValueError("La consulta supera el límite de 50,000 caracteres.")
     if not re.match(r"^\s*(WITH\b|SELECT\b)", consulta, flags=re.IGNORECASE):

@@ -83,6 +83,12 @@ class ServidorJSONRPC:
             raise ErrorRPC(-32600, "Solicitud JSON-RPC inválida")
         if mensaje.get("jsonrpc") != "2.0" or not isinstance(mensaje.get("method"), str):
             raise ErrorRPC(-32600, "Solicitud JSON-RPC inválida")
+        identificador = mensaje.get("id")
+        if "id" in mensaje and (
+            isinstance(identificador, bool)
+            or not isinstance(identificador, (str, int, float, type(None)))
+        ):
+            raise ErrorRPC(-32600, "El identificador JSON-RPC no es válido")
         if "params" in mensaje and not isinstance(mensaje["params"], (dict, list)):
             raise ErrorRPC(-32602, "Los parámetros deben ser un objeto o un arreglo")
 
@@ -97,6 +103,12 @@ class ServidorJSONRPC:
         campos_requeridos = ("protocolVersion", "capabilities", "clientInfo")
         if any(campo not in parametros for campo in campos_requeridos):
             raise ErrorRPC(-32602, "Faltan parámetros requeridos de initialize")
+        if not isinstance(parametros["protocolVersion"], str):
+            raise ErrorRPC(-32602, "protocolVersion debe ser un texto")
+        if not isinstance(parametros["capabilities"], dict):
+            raise ErrorRPC(-32602, "capabilities debe ser un objeto")
+        if not isinstance(parametros["clientInfo"], dict):
+            raise ErrorRPC(-32602, "clientInfo debe ser un objeto")
 
         self._inicio_respondido = True
         return {

@@ -66,7 +66,7 @@ Devuelve el modelo recomendado, hechos, dimensiones, relaciones, hallazgos y sig
 Parámetros:
 
 - `objetivo` (texto, requerido): finalidad de negocio del dashboard.
-- `campos` (arreglo, requerido).
+- `campos` (arreglo, requerido): máximo 500 campos.
   - `nombre` y `tipo` (texto, requeridos).
   - `rol` (opcional): `medida`, `dimension`, `fecha` o `identificador`.
   - `cardinalidad` (entero positivo, opcional).

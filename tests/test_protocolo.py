@@ -55,6 +55,26 @@ class PruebasProtocolo(unittest.TestCase):
         respuesta = self.enviar({"jsonrpc": "2.0", "id": 3, "method": "ping"})
         self.assertEqual(respuesta["result"], {})
 
+    def test_valida_identificador_y_parametros_de_inicio(self) -> None:
+        identificador_invalido = self.enviar(
+            {"jsonrpc": "2.0", "id": {"valor": 1}, "method": "ping"}
+        )
+        self.assertEqual(identificador_invalido["error"]["code"], -32600)
+
+        inicio_invalido = self.enviar(
+            {
+                "jsonrpc": "2.0",
+                "id": 4,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": 2025,
+                    "capabilities": {},
+                    "clientInfo": {},
+                },
+            }
+        )
+        self.assertEqual(inicio_invalido["error"]["code"], -32602)
+
 
 if __name__ == "__main__":
     unittest.main()

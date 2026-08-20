@@ -128,6 +128,33 @@ class PruebasDominio(unittest.TestCase):
         )
         self.assertIn("Buenas prácticas de SQL", lectura["result"]["contents"][0]["text"])
 
+    def test_rechaza_valores_fuera_de_los_esquemas(self) -> None:
+        modelo = self.invocar(
+            "analizar_modelo_datos",
+            {
+                "tablas": [
+                    {
+                        "nombre": "ventas",
+                        "columnas": [
+                            {"nombre": "total", "tipo": "decimal", "rol": "desconocido"}
+                        ],
+                    }
+                ]
+            },
+        )
+        self.assertTrue(modelo["isError"])
+
+        dashboard = self.invocar(
+            "recomendar_dashboard",
+            {
+                "objetivo": "Comparar las ventas",
+                "campos": [
+                    {"nombre": "region", "tipo": "texto", "cardinalidad": 0}
+                ],
+            },
+        )
+        self.assertTrue(dashboard["isError"])
+
 
 if __name__ == "__main__":
     unittest.main()
