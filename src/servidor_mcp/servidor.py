@@ -5,12 +5,12 @@ from __future__ import annotations
 import json
 import sys
 
-from .protocolo import ServidorJSONRPC
+from .dominio import ServidorAsistenteBI
 
 
 def ejecutar() -> None:
     """Lee un mensaje JSON-RPC por línea y escribe las respuestas en stdout."""
-    servidor = ServidorJSONRPC()
+    servidor = ServidorAsistenteBI()
     for linea in sys.stdin:
         if not linea.strip():
             continue
