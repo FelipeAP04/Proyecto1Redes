@@ -1,0 +1,25 @@
+{
+  "campos": [
+    {
+      "nombre": "ventas",
+      "tipo": "decimal",
+      "rol": "medida"
+    },
+    {
+      "nombre": "cantidad",
+      "tipo": "entero",
+      "rol": "medida"
+    },
+    {
+      "nombre": "fecha",
+      "tipo": "date",
+      "rol": "fecha"
+    },
+    {
+      "nombre": "region",
+      "tipo": "texto",
+      "rol": "dimension",
+      "cardinalidad": 5
+    }
+  ]
+}

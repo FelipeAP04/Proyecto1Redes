@@ -1,0 +1,55 @@
+{
+  "tablas": [
+    {
+      "nombre": "ventas",
+      "descripcion": "Transacciones de venta de la empresa",
+      "columnas": [
+        {
+          "nombre": "id_venta",
+          "tipo": "entero",
+          "rol": "identificador",
+          "clave": "primaria"
+        },
+        {
+          "nombre": "fecha_venta",
+          "tipo": "fecha",
+          "rol": "dimension"
+        },
+        {
+          "nombre": "id_cliente",
+          "tipo": "entero",
+          "rol": "identificador",
+          "clave": "foranea",
+          "referencia": "clientes.id_cliente"
+        },
+        {
+          "nombre": "total",
+          "tipo": "decimal",
+          "rol": "medida"
+        }
+      ]
+    },
+    {
+      "nombre": "clientes",
+      "descripcion": "Información descriptiva de clientes",
+      "columnas": [
+        {
+          "nombre": "id_cliente",
+          "tipo": "entero",
+          "rol": "identificador",
+          "clave": "primaria"
+        },
+        {
+          "nombre": "region",
+          "tipo": "texto",
+          "rol": "dimension"
+        },
+        {
+          "nombre": "segmento",
+          "tipo": "texto",
+          "rol": "dimension"
+        }
+      ]
+    }
+  ]
+}

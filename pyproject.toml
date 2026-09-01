@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "asistente-bi-mcp"
 version = "0.1.0"
-description = "Servidor MCP local para modelado de datos y desarrollo de dashboards"
+description = "Servidor y anfitrión MCP local para modelado de datos y dashboards"
 requires-python = ">=3.11"
 dependencies = []
 
