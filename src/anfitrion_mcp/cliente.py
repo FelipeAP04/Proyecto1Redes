@@ -10,6 +10,8 @@ from typing import Any
 
 from servidor_mcp.protocolo import VERSION_PROTOCOLO
 
+from .registro import RegistroMCP
+
 
 class ErrorClienteMCP(Exception):
     """Error de transporte o protocolo detectado por el anfitrión."""
@@ -24,6 +26,7 @@ class ClienteMCP:
         directorio: Path | None = None,
         version_protocolo: str = VERSION_PROTOCOLO,
         entorno: dict[str, str] | None = None,
+        registro: RegistroMCP | None = None,
     ) -> None:
         if not comando:
             raise ValueError("El comando del servidor no puede estar vacío.")
@@ -31,6 +34,7 @@ class ClienteMCP:
         self._directorio = directorio
         self._version_protocolo = version_protocolo
         self._entorno = entorno or os.environ.copy()
+        self._registro = registro
         self._proceso: subprocess.Popen[str] | None = None
         self._siguiente_id = 1
         self.informacion_servidor: dict[str, Any] | None = None
@@ -108,6 +112,8 @@ class ClienteMCP:
         except json.JSONDecodeError as error:
             raise ErrorClienteMCP("El servidor produjo una respuesta JSON inválida.") from error
 
+        if isinstance(respuesta, dict) and self._registro is not None:
+            self._registro.guardar("servidor_a_cliente", respuesta)
         if not isinstance(respuesta, dict) or respuesta.get("jsonrpc") != "2.0":
             raise ErrorClienteMCP("La respuesta no cumple JSON-RPC 2.0.")
         if respuesta.get("id") != identificador:
@@ -202,6 +208,8 @@ class ClienteMCP:
                 json.dumps(mensaje, ensure_ascii=False, separators=(",", ":")) + "\n"
             )
             proceso.stdin.flush()
+            if self._registro is not None:
+                self._registro.guardar("cliente_a_servidor", mensaje)
         except (BrokenPipeError, OSError) as error:
             raise ErrorClienteMCP("No se pudo escribir al servidor MCP.") from error
 
